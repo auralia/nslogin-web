@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 import Ui from "./ui";
-import {VERSION} from "./main";
 import {NsApi} from "nsapi";
 import * as util from "util";
 
@@ -64,11 +63,8 @@ export default class App {
     {
         this.reset();
 
-        this._userAgent = `node-nslogin-web ${VERSION} (maintained`
-                          + ` by Auralia, currently used by`
-                          + ` "${userAgent}")`;
-
-        Ui.log("info", `nslogin-web ${VERSION}`);
+        this._userAgent = `nslogin-web (maintained by Auralia, currently`
+                          + ` used by "${userAgent}")`;
 
         const api = new NsApi(userAgent);
 

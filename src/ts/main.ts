@@ -23,9 +23,4 @@ import * as $ from "jquery";
 import "bootstrap";
 // @formatter:on
 
-/**
- * The current version of nslogin-web.
- */
-export const VERSION = "0.1.0";
-
 new NsLoginWebUi().init();

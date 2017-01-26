@@ -1,6 +1,5 @@
 {
   "name": "nslogin-web",
-  "version": "0.1.0",
   "description": "Web client for logging into and restoring NationStates nations",
   "license": "Apache-2.0",
   "author": {
@@ -9,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/auralia/node-nslogin-web.git"
+    "url": "git://github.com/auralia/nslogin-web.git"
   },
   "devDependencies": {
     "browserify": "^14.0.0",

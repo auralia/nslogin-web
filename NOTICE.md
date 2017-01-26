@@ -1,2 +1,2 @@
-node-nslogin-web  
+nslogin-web  
 Copyright (C) 2017 Auralia
