@@ -13,8 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import Ui from "./ui";
 import {NsApi} from "nsapi";
+import Ui from "./ui";
 import * as util from "util";
 
 /**
@@ -158,7 +158,9 @@ export default class App {
             }
             try {
                 Ui.log("info", `${credential.nation}: Logging in...`);
-                await this.loginRequest(credential);
+                await api.nationRequest(credential.nation, ["nextissuetime"],
+                                        {}, {password: credential.password},
+                                        true);
                 const data = await api.nationRequest(credential.nation,
                                                      ["lastlogin"]);
                 const now = Date.now() / 1000;
@@ -216,43 +218,6 @@ export default class App {
                 }
             }
         }
-    }
-
-    /**
-     * Logs into the specified nation using a form in a hidden iframe. Waits 6
-     * seconds after doing so in order to confirm to NationStates rate limits.
-     *
-     * @param credential The name and password of the nation to log into.
-     */
-    private loginRequest(credential: Credential): Promise<void> {
-        return new Promise<void>((resolve) => {
-            let resolved = false;
-
-            const iframe = $("#iframe");
-            iframe.off("load");
-            iframe.on("load", () => {
-                iframe.off("load");
-                iframe.contents().find("#loginUserAgent").val(this._userAgent);
-                iframe.contents().find("#loginLoggingIn").val("1");
-                iframe.contents().find("#loginNation").val(
-                    App.toId(credential.nation));
-                iframe.contents().find("#loginPassword").val(
-                    credential.password);
-                iframe.contents().find("#loginSubmit").click();
-
-                setTimeout(() => {
-                    resolved = true;
-                    resolve();
-                }, 6000);
-            });
-            iframe.attr({src: "iframe.html"});
-
-            setTimeout(() => {
-                if (!resolved) {
-                    resolve();
-                }
-            }, 15000);
-        });
     }
 
     /**
