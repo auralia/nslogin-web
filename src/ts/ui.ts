@@ -73,6 +73,7 @@ export default class Ui {
 
     private async handleStart(): Promise<void> {
         const userAgentInput = $("#userAgent");
+        const rateLimitInput = $("#rateLimit");
         const loginModeInput = $("#modeLogin");
         const restoreModeInput = $("#modeRestore");
         const autoModeInput = $("#modeAuto");
@@ -105,7 +106,7 @@ export default class Ui {
             return;
         }
 
-        const userAgent = userAgentInput.val();
+        const userAgent = String(userAgentInput.val());
         let mode: Mode;
         if (loginModeInput.is(":checked")) {
             mode = Mode.Login;
@@ -118,10 +119,12 @@ export default class Ui {
         }
         const verbose = verboseInput.is(":checked");
 
+        const rateLimit = Number(rateLimitInput.val());
+
         Ui.toggleUi(true);
         $("#navbar").find("a[href='#status']").tab("show");
 
-        await this._app.start(userAgent, mode, credentials, verbose);
+        await this._app.start(userAgent, rateLimit, mode, credentials, verbose);
     }
 
     private handleCancel(): void {
@@ -147,7 +150,7 @@ export default class Ui {
     }
 
     private static getCredentials(): Credential[] {
-        const text = $("#credentials").val();
+        const text = String($("#credentials").val());
         const credentials: Credential[] = [];
         const lines = text.split("\n");
         for (let i = 0; i < lines.length; i++) {

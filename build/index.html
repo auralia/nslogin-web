@@ -60,11 +60,20 @@
                     <div class="form-group" id="userAgentFormGroup">
                         <label class="control-label" for="userAgent">User
                             agent</label>
-                        <span class="help-block"> A string identifying you to NationStates. Using the name of your main nation is recommended.</span>
+                        <span class="help-block">A string identifying you to
+                            NationStates. Using the name of your main nation
+                            is recommended.</span>
                         <input type="text" class="form-control" id="userAgent"
                                placeholder="User agent">
                     </div>
-
+                    <div class="form-group" id="rateLimitFormGroup">
+                        <label class="control-label" for="rateLimit">Rate
+                            limit</label>
+                        <span class="help-block">The number of milliseconds
+                            between NationStates API requests.</span>
+                        <input type="number" class="form-control" id="rateLimit"
+                               min="600" value="1200">
+                    </div>
                     <div class="form-group" id="modeFormGroup">
                         <label class="control-label">Operating mode</label>
                         <div class="radio">

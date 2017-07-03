@@ -53,12 +53,14 @@ export default class App {
      * depending on the mode specified.
      *
      * @param userAgent The user agent specified by the user.
+     * @param rateLimit The rate limit to be used by the API.
      * @param mode The operating mode of the application.
      * @param credentials The names and passwords of the nations to log into or
      *                    restore.
      * @param verbose Whether or not to print out detailed error messages.
      */
-    public async start(userAgent: string, mode: Mode, credentials: Credential[],
+    public async start(userAgent: string, rateLimit: number, mode: Mode,
+                       credentials: Credential[],
                        verbose: boolean): Promise<void>
     {
         this.reset();
@@ -66,7 +68,7 @@ export default class App {
         this._userAgent = `nslogin-web (maintained by Auralia, currently`
                           + ` used by "${userAgent}")`;
 
-        const api = new NsApi(userAgent);
+        const api = new NsApi(userAgent, true, rateLimit);
 
         try {
             if (mode === Mode.Auto) {
