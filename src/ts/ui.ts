@@ -30,6 +30,52 @@ export default class Ui {
     }
 
     /**
+     * Initializes the application's UI.
+     */
+    public init(): void {
+        // Initialize auto save checkbox
+        let autoLoadSave = false;
+        try {
+            const autoLoadSaveInput = $("#autoLoadSave");
+            const autoLoadSaveRaw = localStorage.getItem("autoLoadSave");
+            autoLoadSave = autoLoadSaveRaw !== null
+                ? autoLoadSaveRaw === "true" : true;
+            autoLoadSaveInput.prop("checked", autoLoadSave);
+            autoLoadSaveInput.on("click", () => {
+                localStorage.setItem(
+                    "autoLoadSave",
+                    String(autoLoadSaveInput.is(":checked")));
+            });
+        } catch {
+            // No local storage
+        }
+
+        // Initialize tabs
+        $("#navbar").find("a").click((e) => {
+            e.preventDefault();
+            $(e.currentTarget).tab("show");
+        });
+
+        // Add handlers
+        $("#loadButton").on("click", () => Ui.handleLoad());
+        $("#saveButton").on("click", () => Ui.handleSave());
+        $("#startButton").on("click", () => {
+            this.handleStart().catch((err) => {
+                console.error(err);
+            });
+        });
+        $("#pauseButton").on("click", () => this.handlePause());
+        $("#cancelButton").on("click", () => this.handleCancel());
+        $("#clearButton").on("click", () => Ui.handleClear());
+        $(window).on("unload", () => Ui.handleClose());
+
+        // Load configuration
+        if (autoLoadSave) {
+            Ui.handleLoad();
+        }
+    }
+
+    /**
      * Logs a message to the log text area.
      *
      * @param type The type of log message (e.g. info, error, etc.)
@@ -81,11 +127,6 @@ export default class Ui {
         $("#cancelButton").prop("disabled", !running);
     }
 
-    public static handleFinish(): void {
-        Ui.toggleUi(false);
-        $("#restoreButton").prop("disabled", true);
-    }
-
     /**
      * Shows an alert.
      *
@@ -134,10 +175,9 @@ export default class Ui {
         $("#" + formGroupId).removeClass("has-error");
     }
 
-    private static handleClear(): void {
-        $("#log").html("");
-    }
-
+    /**
+     * Handler for the load configuration button.
+     */
     private static handleLoad(): void {
         try {
             const userAgent = localStorage.getItem("userAgent");
@@ -175,6 +215,9 @@ export default class Ui {
         }
     }
 
+    /**
+     * Handler for the save configuration button.
+     */
     private static handleSave(): void {
         try {
             localStorage.setItem("userAgent",
@@ -192,100 +235,9 @@ export default class Ui {
         }
     }
 
-    private static handleClose(): void {
-        if ($("#autoLoadSave").is(":checked")) {
-            Ui.handleSave();
-        }
-    }
-
-    private static getMode(): Mode {
-        const loginModeInput = $("#modeLogin");
-        const restoreModeInput = $("#modeRestore");
-        const autoModeInput = $("#modeAuto");
-        if (loginModeInput.is(":checked")) {
-            return Mode.Login;
-        } else if (restoreModeInput.is(":checked")) {
-            return Mode.Restore;
-        } else if (autoModeInput.is(":checked")) {
-            return Mode.Auto;
-        } else {
-            throw new Error("No mode is checked");
-        }
-    }
-
-    private static getCredentials(): Credential[] {
-        const text = String($("#credentials").val());
-        const credentials: Credential[] = [];
-        const lines = text.split("\n");
-        for (let i = 0; i < lines.length; i++) {
-            // Ignore empty lines or lines just containing whitespace
-            if (lines[i].trim() === "") {
-                continue;
-            }
-            const tuple = lines[i].split(",");
-            if (tuple.length !== 2) {
-                throw new Error(
-                    `Nation names and passwords text box does not`
-                    + ` contain a single nation name and a single`
-                    + ` password in the form 'nation,password' on`
-                    + ` line ${i + 1}`);
-            }
-            credentials.push({nation: tuple[0], password: tuple[1]});
-        }
-        if (credentials.length === 0) {
-            throw new Error(
-                "You must specify at least one nation name and"
-                + " password.");
-        }
-        return credentials;
-    }
-
     /**
-     * Initializes the application's UI.
+     * Handler for the start button.
      */
-    public init(): void {
-        // Initialize auto save checkbox
-        let autoLoadSave = false;
-        try {
-            const autoLoadSaveInput = $("#autoLoadSave");
-            const autoLoadSaveRaw = localStorage.getItem("autoLoadSave");
-            autoLoadSave = autoLoadSaveRaw !== null
-                ? autoLoadSaveRaw === "true" : true;
-            autoLoadSaveInput.prop("checked", autoLoadSave);
-            autoLoadSaveInput.on("click", () => {
-                localStorage.setItem(
-                    "autoLoadSave",
-                    String(autoLoadSaveInput.is(":checked")));
-            });
-        } catch {
-            // No local storage
-        }
-
-        // Initialize tabs
-        $("#navbar").find("a").click((e) => {
-            e.preventDefault();
-            $(e.currentTarget).tab("show");
-        });
-
-        // Add handlers
-        $("#loadButton").on("click", () => Ui.handleLoad());
-        $("#saveButton").on("click", () => Ui.handleSave());
-        $("#startButton").on("click", () => {
-            this.handleStart().catch((err) => {
-                console.error(err);
-            });
-        });
-        $("#pauseButton").on("click", () => this.handlePause());
-        $("#cancelButton").on("click", () => this.handleCancel());
-        $("#clearButton").on("click", () => Ui.handleClear());
-        $(window).on("unload", () => Ui.handleClose());
-
-        // Load configuration
-        if (autoLoadSave) {
-            Ui.handleLoad();
-        }
-    }
-
     private async handleStart(): Promise<void> {
         const userAgentInput = $("#userAgent");
         const rateLimitInput = $("#rateLimit");
@@ -329,6 +281,9 @@ export default class Ui {
                               mode, credentials, verbose);
     }
 
+    /**
+     * Handler fot the pause button.
+     */
     private handlePause(): void {
         if (this._app.isPaused()) {
             this._app.unpause();
@@ -339,11 +294,86 @@ export default class Ui {
         }
     }
 
+    /**
+     * Handler fot the cancel button.
+     */
     private handleCancel(): void {
         const pauseButton = $("#pauseButton");
         pauseButton.text("Pause");
         pauseButton.prop("disabled", true);
         $("#cancelButton").prop("disabled", true);
         this._app.cancel();
+    }
+
+    /**
+     * Handler fot the clear button.
+     */
+    private static handleClear(): void {
+        $("#log").html("");
+    }
+
+    /**
+     * Handler called when application finishes running.
+     */
+    public static handleFinish(): void {
+        Ui.toggleUi(false);
+        $("#restoreButton").prop("disabled", true);
+    }
+
+    /**
+     * Handler called when tab is closed.
+     */
+    private static handleClose(): void {
+        if ($("#autoLoadSave").is(":checked")) {
+            Ui.handleSave();
+        }
+    }
+
+    /**
+     * Gets the selected mode.
+     */
+    private static getMode(): Mode {
+        const loginModeInput = $("#modeLogin");
+        const restoreModeInput = $("#modeRestore");
+        const autoModeInput = $("#modeAuto");
+        if (loginModeInput.is(":checked")) {
+            return Mode.Login;
+        } else if (restoreModeInput.is(":checked")) {
+            return Mode.Restore;
+        } else if (autoModeInput.is(":checked")) {
+            return Mode.Auto;
+        } else {
+            throw new Error("No mode is checked");
+        }
+    }
+
+    /**
+     * Gets the current credentials.
+     */
+    private static getCredentials(): Credential[] {
+        const text = String($("#credentials").val());
+        const credentials: Credential[] = [];
+        const lines = text.split("\n");
+        for (let i = 0; i < lines.length; i++) {
+            // Ignore empty lines or lines just containing whitespace
+            if (lines[i].trim() === "") {
+                continue;
+            }
+            const tuple = lines[i].split(",");
+            if (tuple.length !== 2) {
+                throw new Error(
+                    `Nation names and passwords text box does not`
+                    + ` contain a single nation name and a single`
+                    + ` password in the form 'nation,password' on`
+                    + ` line ${i + 1}`);
+            }
+            credentials.push({nation: tuple[0], password: tuple[1]});
+        }
+        if (credentials.length === 0) {
+            throw new Error(
+                "You must specify at least one nation name and"
+                + " password.");
+        }
+        return credentials;
     }
 }
