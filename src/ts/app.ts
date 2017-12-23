@@ -39,6 +39,7 @@ export interface Credential {
  */
 export default class App {
     private _cancel: boolean;
+    private _pause: boolean;
     private _userAgent: string;
 
     /**
@@ -92,23 +93,51 @@ export default class App {
         } else {
             Ui.log("info", "Process complete.");
         }
+        await this.waitUntilUnpaused();
 
         Ui.handleFinish();
     }
 
     /**
-     * Cancels the current request.
+     * Cancels the current activity being performed by the app.
      */
     public cancel() {
         Ui.log("info", "Cancelling...");
         this._cancel = true;
+        this._pause = false;
     }
 
     /**
-     * Resets a cancelled API so that it can be used to make requests again.
+     * Pauses the current activity.
+     */
+    public pause() {
+        Ui.log("info", "Pausing...");
+        this._pause = true;
+    }
+
+    /**
+     * Resumes the current activity.
+     */
+    public unpause() {
+        Ui.log("info", "Unpausing...");
+        this._pause = false;
+    }
+
+    /**
+     * Returns whether the app is paused.
+     *
+     * @return Whether the app is paused.
+     */
+    public isPaused() {
+        return this._pause;
+    }
+
+    /**
+     * Resets the app.
      */
     private reset() {
         this._cancel = false;
+        this._pause = false;
     }
 
     /**
@@ -126,6 +155,7 @@ export default class App {
             if (this._cancel) {
                 break;
             }
+            await this.waitUntilUnpaused();
             let login = true;
             try {
                 Ui.log("info", `${credential.nation}: Nation exists`);
@@ -158,10 +188,13 @@ export default class App {
             if (this._cancel) {
                 break;
             }
+            await this.waitUntilUnpaused();
             try {
                 Ui.log("info", `${credential.nation}: Logging in...`);
-                await api.nationRequest(credential.nation, ["nextissuetime"],
-                                        {}, {password: credential.password},
+                await api.nationRequest(credential.nation,
+                                        ["nextissuetime"],
+                                        {},
+                                        {password: credential.password},
                                         true);
                 const data = await api.nationRequest(credential.nation,
                                                      ["lastlogin"]);
@@ -202,6 +235,7 @@ export default class App {
             if (this._cancel) {
                 break;
             }
+            await this.waitUntilUnpaused();
             Ui.log("info", `${credential.nation}: Waiting for confirmation...`);
             await Ui.confirm();
             Ui.log("info", `${credential.nation}: Confirmation received,`
@@ -238,7 +272,8 @@ export default class App {
                 iframe.off("load");
                 iframe.contents().find("#restoreUserAgent").val(
                     this._userAgent);
-                iframe.contents().find("#restoreLoggingIn").val("1");
+                iframe.contents().find("#restoreLoggingIn").val(
+                    "1");
                 iframe.contents().find("#restoreNation").val(
                     App.toId(credential.nation));
                 iframe.contents().find("#restoreRestoreNation").val(
@@ -271,6 +306,32 @@ export default class App {
      * @return The converted name.
      */
     private static toId(name: string) {
-        return name.replace("_", " ").trim().toLowerCase().replace(" ", "_");
+        return name.replace("_", " ")
+                   .trim()
+                   .toLowerCase()
+                   .replace(" ", "_");
+    }
+
+    /**
+     * Sleeps until unpaused.
+     *
+     * @return A promise fired when the app is unpaused.
+     */
+    private async waitUntilUnpaused() {
+        while (this._pause) {
+            await App.sleep(1000);
+        }
+    }
+
+    /**
+     * Sleeps for the specified number of milliseconds.
+     *
+     * @param ms The number of milliseconds to sleep.
+     *
+     * @return A promise fired after sleeping for the specified number of
+     * milliseconds.
+     */
+    private static async sleep(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
