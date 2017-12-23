@@ -57,14 +57,43 @@
                     <h3 class="panel-title">Configuration</h3>
                 </div>
                 <div class="panel-body">
+                    <div class="form-group" id="localStorageFormGroup">
+                        <label class="control-label">Local storage</label>
+                        <div class="checkbox">
+                            <label>
+                                <input type="checkbox" id="autoLoadSave"
+                                       checked="checked">
+                                Automatically load and save configuration
+                                in local storage
+                                <span class="text-muted">(when page is loaded
+                                    and unloaded)</span>
+                            </label>
+                        </div>
+                        <button id="loadButton" class="btn btn-default">
+                            Load Configuration
+                        </button>
+                        <button id="saveButton" class="btn btn-default">
+                            Save Configuration
+                        </button>
+                    </div>
+
                     <div class="form-group" id="userAgentFormGroup">
                         <label class="control-label" for="userAgent">User
                             agent</label>
-                        <span class="help-block"> A string identifying you to NationStates. Using the name of your main nation is recommended.</span>
+                        <span class="help-block">A string identifying you to
+                            NationStates. Using the name of your main nation
+                            is recommended.</span>
                         <input type="text" class="form-control" id="userAgent"
                                placeholder="User agent">
                     </div>
-
+                    <div class="form-group" id="rateLimitFormGroup">
+                        <label class="control-label" for="rateLimit">Rate
+                            limit</label>
+                        <span class="help-block">The number of milliseconds
+                            between NationStates API requests.</span>
+                        <input type="number" class="form-control" id="rateLimit"
+                               min="600" value="1200">
+                    </div>
                     <div class="form-group" id="modeFormGroup">
                         <label class="control-label">Operating mode</label>
                         <div class="radio">
@@ -116,7 +145,7 @@ Mediumville,$nowF@LL</pre>
                         <label class="control-label">Logging</label>
                         <div class="checkbox">
                             <label>
-                                <input type="checkbox" id="verbose" value="">
+                                <input type="checkbox" id="verbose">
                                 Verbose mode <span class="text-muted">(show
                                 detailed error messages)</span>
                             </label>
@@ -136,12 +165,24 @@ Mediumville,$nowF@LL</pre>
                 </div>
                 <div class="panel-body">
                     <p>Please note that you will be required to confirm the
-                        restoration of each nation by clicking the "Confirm
-                        Restore" button below. This is required to satisfy
-                        the 'one click per action' NationStates script rule for
-                        actions that affect parts of NationStates other than
-                        your own nation.</p>
+                        restoration of each nation that needs to be restored
+                        by clicking the "Confirm Restore" button below. This is
+                        required to satisfy the 'one click per action'
+                        NationStates script rule for actions that affect
+                        parts of NationStates other than your own nation.</p>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox" id="scrollToBottom"
+                                   checked="checked">
+                            Automatically scroll to bottom
+                        </label>
+                    </div>
                     <pre class="log" id="log"></pre>
+                    <button id="pauseButton"
+                            class="btn btn-default"
+                            disabled>
+                        Pause
+                    </button>
                     <button id="cancelButton"
                             class="btn btn-default"
                             disabled>
