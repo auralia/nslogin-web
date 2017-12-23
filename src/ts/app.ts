@@ -43,10 +43,37 @@ export default class App {
     private _userAgent: string;
 
     /**
-     * Initializes a new instance of the NsLogin class.
+     * Initializes a new instance of the App class.
      */
     constructor() {
         this.reset();
+    }
+
+    /**
+     * Converts names to a fixed form: all lowercase, with spaces replaced
+     * with underscores.
+     *
+     * @param name The name to convert.
+     *
+     * @return The converted name.
+     */
+    private static toId(name: string) {
+        return name.replace("_", " ")
+                   .trim()
+                   .toLowerCase()
+                   .replace(" ", "_");
+    }
+
+    /**
+     * Sleeps for the specified number of milliseconds.
+     *
+     * @param ms The number of milliseconds to sleep.
+     *
+     * @return A promise fired after sleeping for the specified number of
+     * milliseconds.
+     */
+    private static async sleep(ms: number) {
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 
     /**
@@ -298,21 +325,6 @@ export default class App {
     }
 
     /**
-     * Converts names to a fixed form: all lowercase, with spaces replaced
-     * with underscores.
-     *
-     * @param name The name to convert.
-     *
-     * @return The converted name.
-     */
-    private static toId(name: string) {
-        return name.replace("_", " ")
-                   .trim()
-                   .toLowerCase()
-                   .replace(" ", "_");
-    }
-
-    /**
      * Sleeps until unpaused.
      *
      * @return A promise fired when the app is unpaused.
@@ -321,17 +333,5 @@ export default class App {
         while (this._pause) {
             await App.sleep(1000);
         }
-    }
-
-    /**
-     * Sleeps for the specified number of milliseconds.
-     *
-     * @param ms The number of milliseconds to sleep.
-     *
-     * @return A promise fired after sleeping for the specified number of
-     * milliseconds.
-     */
-    private static async sleep(ms: number) {
-        return new Promise(resolve => setTimeout(resolve, ms));
     }
 }

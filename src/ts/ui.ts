@@ -16,54 +16,17 @@
 import App, {Credential, Mode} from "./app";
 import * as $ from "jquery";
 
+/**
+ * Contains the application's UI logic.
+ */
 export default class Ui {
     private readonly _app: App;
 
+    /**
+     * Initializes a new instance of the Ui class.
+     */
     constructor() {
         this._app = new App();
-    }
-
-    public init(): void {
-        // Initialize auto save checkbox
-        let autoLoadSave = false;
-        try {
-            const autoLoadSaveInput = $("#autoLoadSave");
-            const autoLoadSaveRaw = localStorage.getItem("autoLoadSave");
-            autoLoadSave = autoLoadSaveRaw !== null
-                ? autoLoadSaveRaw === "true" : true;
-            autoLoadSaveInput.prop("checked", autoLoadSave);
-            autoLoadSaveInput.on("click", () => {
-                localStorage.setItem(
-                    "autoLoadSave",
-                    String(autoLoadSaveInput.is(":checked")));
-            });
-        } catch {
-            // No local storage
-        }
-
-        // Initialize tabs
-        $("#navbar").find("a").click((e) => {
-            e.preventDefault();
-            $(e.currentTarget).tab("show");
-        });
-
-        // Add handlers
-        $("#startButton").on("click", () => {
-            this.handleStart().catch((err) => {
-                console.error(err);
-            });
-        });
-        $("#pauseButton").on("click", () => this.handlePause());
-        $("#cancelButton").on("click", () => this.handleCancel());
-        $("#clearButton").on("click", () => Ui.handleClear());
-        $("#loadButton").on("click", () => Ui.handleLoad());
-        $("#saveButton").on("click", () => Ui.handleSave());
-        $(window).on("unload", () => Ui.handleClose());
-
-        // Load configuration
-        if (autoLoadSave) {
-            Ui.handleLoad();
-        }
     }
 
     /**
@@ -102,6 +65,12 @@ export default class Ui {
         });
     }
 
+    /**
+     * Toggles the application's UI depending on whether the application is
+     * currently running.
+     *
+     * @param running Whether the application is currently running.
+     */
     static toggleUi(running: boolean): void {
         const config = $("#configuration");
         config.find("input").prop("disabled", running);
@@ -112,6 +81,19 @@ export default class Ui {
         $("#cancelButton").prop("disabled", !running);
     }
 
+    public static handleFinish(): void {
+        Ui.toggleUi(false);
+        $("#restoreButton").prop("disabled", true);
+    }
+
+    /**
+     * Shows an alert.
+     *
+     * @param id The ID of the alert.
+     * @param message The message of the alert.
+     * @param cssClass The CSS class of the alert.
+     * @param containerId The ID of the container of the alert.
+     */
     private static showAlert(id: string, message: string, cssClass: string,
                              containerId: string): void {
         if ($("#" + id).length === 0) {
@@ -123,6 +105,13 @@ export default class Ui {
         }
     }
 
+    /**
+     * Shows a validation alert.
+     *
+     * @param id The ID of the alert.
+     * @param message The message of the alert.
+     * @param formGroupId The ID of the form group of the alert.
+     */
     private static showValidationAlert(id: string, message: string,
                                        formGroupId: string): void {
         if ($("#" + id).length === 0) {
@@ -134,75 +123,15 @@ export default class Ui {
         }
     }
 
+    /**
+     * Hides a validation alert.
+     *
+     * @param id The ID of the alert.
+     * @param formGroupId The ID of the form group of the alert.
+     */
     private static hideValidationAlert(id: string, formGroupId: string): void {
         $("#" + id).remove();
         $("#" + formGroupId).removeClass("has-error");
-    }
-
-    private async handleStart(): Promise<void> {
-        const userAgentInput = $("#userAgent");
-        const rateLimitInput = $("#rateLimit");
-        const verboseInput = $("#verbose");
-
-        let passValidation = true;
-
-        Ui.hideValidationAlert("userAgentValidationAlert",
-                               "userAgentFormGroup");
-        if (userAgentInput.val() === "") {
-            Ui.showValidationAlert("userAgentValidationAlert",
-                                   "You must specify a user agent.",
-                                   "userAgentFormGroup");
-            passValidation = false;
-        }
-
-        Ui.hideValidationAlert("credentialsValidationAlert",
-                               "credentialsFormGroup");
-        let credentials: Credential[] = [];
-        try {
-            credentials = Ui.getCredentials();
-        } catch (err) {
-            Ui.showValidationAlert("credentialsValidationAlert",
-                                   err.message,
-                                   "credentialsFormGroup");
-            passValidation = false;
-        }
-
-        if (!passValidation) {
-            return;
-        }
-
-        const userAgent = String(userAgentInput.val());
-        let mode: Mode = Ui.getMode();
-        const verbose = verboseInput.is(":checked");
-
-        Ui.toggleUi(true);
-        $("#navbar").find("a[href='#status']").tab("show");
-
-        await this._app.start(userAgent, Number(rateLimitInput.val()),
-                              mode, credentials, verbose);
-    }
-
-    private handlePause(): void {
-        if (this._app.isPaused()) {
-            this._app.unpause();
-            $("#pauseButton").text("Pause");
-        } else {
-            this._app.pause();
-            $("#pauseButton").text("Resume");
-        }
-    }
-
-    private handleCancel(): void {
-        const pauseButton = $("#pauseButton");
-        pauseButton.text("Pause");
-        pauseButton.prop("disabled", true);
-        $("#cancelButton").prop("disabled", true);
-        this._app.cancel();
-    }
-
-    public static handleFinish(): void {
-        Ui.toggleUi(false);
-        $("#restoreButton").prop("disabled", true);
     }
 
     private static handleClear(): void {
@@ -216,7 +145,7 @@ export default class Ui {
                 $("#userAgent").val(userAgent);
             }
             const rateLimit = localStorage.getItem("rateLimit");
-            if (userAgent !== null) {
+            if (rateLimit !== null) {
                 $("#rateLimit").val(Number(rateLimit));
             }
             const mode = localStorage.getItem("mode");
@@ -309,5 +238,112 @@ export default class Ui {
                 + " password.");
         }
         return credentials;
+    }
+
+    /**
+     * Initializes the application's UI.
+     */
+    public init(): void {
+        // Initialize auto save checkbox
+        let autoLoadSave = false;
+        try {
+            const autoLoadSaveInput = $("#autoLoadSave");
+            const autoLoadSaveRaw = localStorage.getItem("autoLoadSave");
+            autoLoadSave = autoLoadSaveRaw !== null
+                ? autoLoadSaveRaw === "true" : true;
+            autoLoadSaveInput.prop("checked", autoLoadSave);
+            autoLoadSaveInput.on("click", () => {
+                localStorage.setItem(
+                    "autoLoadSave",
+                    String(autoLoadSaveInput.is(":checked")));
+            });
+        } catch {
+            // No local storage
+        }
+
+        // Initialize tabs
+        $("#navbar").find("a").click((e) => {
+            e.preventDefault();
+            $(e.currentTarget).tab("show");
+        });
+
+        // Add handlers
+        $("#loadButton").on("click", () => Ui.handleLoad());
+        $("#saveButton").on("click", () => Ui.handleSave());
+        $("#startButton").on("click", () => {
+            this.handleStart().catch((err) => {
+                console.error(err);
+            });
+        });
+        $("#pauseButton").on("click", () => this.handlePause());
+        $("#cancelButton").on("click", () => this.handleCancel());
+        $("#clearButton").on("click", () => Ui.handleClear());
+        $(window).on("unload", () => Ui.handleClose());
+
+        // Load configuration
+        if (autoLoadSave) {
+            Ui.handleLoad();
+        }
+    }
+
+    private async handleStart(): Promise<void> {
+        const userAgentInput = $("#userAgent");
+        const rateLimitInput = $("#rateLimit");
+        const verboseInput = $("#verbose");
+
+        let passValidation = true;
+
+        Ui.hideValidationAlert("userAgentValidationAlert",
+                               "userAgentFormGroup");
+        if (userAgentInput.val() === "") {
+            Ui.showValidationAlert("userAgentValidationAlert",
+                                   "You must specify a user agent.",
+                                   "userAgentFormGroup");
+            passValidation = false;
+        }
+
+        Ui.hideValidationAlert("credentialsValidationAlert",
+                               "credentialsFormGroup");
+        let credentials: Credential[] = [];
+        try {
+            credentials = Ui.getCredentials();
+        } catch (err) {
+            Ui.showValidationAlert("credentialsValidationAlert",
+                                   err.message,
+                                   "credentialsFormGroup");
+            passValidation = false;
+        }
+
+        if (!passValidation) {
+            return;
+        }
+
+        const userAgent = String(userAgentInput.val());
+        const mode: Mode = Ui.getMode();
+        const verbose = verboseInput.is(":checked");
+
+        Ui.toggleUi(true);
+        $("#navbar").find("a[href='#status']").tab("show");
+
+        await this._app.start(userAgent, Number(rateLimitInput.val()),
+                              mode, credentials, verbose);
+    }
+
+    private handlePause(): void {
+        if (this._app.isPaused()) {
+            this._app.unpause();
+            $("#pauseButton").text("Pause");
+        } else {
+            this._app.pause();
+            $("#pauseButton").text("Resume");
+        }
+    }
+
+    private handleCancel(): void {
+        const pauseButton = $("#pauseButton");
+        pauseButton.text("Pause");
+        pauseButton.prop("disabled", true);
+        $("#cancelButton").prop("disabled", true);
+        this._app.cancel();
     }
 }
