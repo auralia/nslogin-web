@@ -219,7 +219,7 @@ export default class App {
             try {
                 Ui.log("info", `${credential.nation}: Logging in...`);
                 await api.nationRequest(credential.nation,
-                                        ["nextissuetime"],
+                                        ["ping"],
                                         {},
                                         {password: credential.password},
                                         true);
